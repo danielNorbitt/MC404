@@ -168,7 +168,7 @@ int processarEntrada(char* entrada, unsigned tamanho){
     // palavra que esta sendo analizada
     char palavra[65];
     char *novaPalavra;
-        // boolean que  controla oq é um comentario
+    // boolean que  controla oq é um comentario
     Boolean isComentario = false;
     TipoDoToken  token;
     for (int i = 0; i < tamanho; i++){
