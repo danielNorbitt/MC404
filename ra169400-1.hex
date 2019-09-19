@@ -1,0 +1,36 @@
+
+100 000000000A # COLOCANDO 10 NA MEMORIA (G = 10)
+101 0000000000 # COLOCANDO 0 NA MEMORIA PARA GUARDAR K (K = 0)
+102 0000000000 # Y = 0
+103 0000000000 # A = 0 (Y/K)
+104 0000000009 # T = 9
+106 0000000001 # H = 1
+
+000 09 100 0B 105 # MQ[X] * 10 = MQ[X]
+001 0A 000 21 102 # MQ[X] -> AC[X];AC[X] -> Y
+002 15 000 21 101 # AC[X] >> 1 AC[X/2] -> K
+
+#  LOOPING
+003 01 102 0C 101 # Y -> AC[Y]; AC[Y]/K = MQ
+004 0A 000 21 103 # MQ[Y/K] -> AC; AC[Y/K] -> A
+005 05 101 15 000 # A + K; AC[A+K] >> 1
+006 21 101 01 104 # AC[K'] -> K
+007 06 106 21 104
+008 0F 003 01 101 # AC[T] -= 1
+009 10 009 0D 400 # FOR, RETORNA K TERMINA PROGRAMA
+
+
+
+# load mq 100 mult 10 
+# load mq     stor 102
+# rsh         stor 101
+
+# looping
+
+# load 102 dic 101
+# load mq  stor 103
+# add 101  rsh 
+# stor 101 load 104
+# sub 106 stor 104
+# jump  3 load 101
+# jump 400 

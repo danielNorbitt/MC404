@@ -1,0 +1,92 @@
+
+Prova  de 2013
+
+1) Preencha as lacunas com os valores na base decimal
+
+VALOR DECIMAL   REPRESENTACAO       # DE BITS  VALOR BINARIO
+-123654         Complemento de 2        20     1110 0001 1100 1111 1010   
+-0              Complemento de 1        16     1111 1111 1111 1111
+-1450           Sinal e Magnitute       12     1101 1010 1010
+991             Sem sinal               12     0011 1101 1111
+
+SEM SINAL -> Calculo normal de numeros binarios
+SINAL E MAGNITUDE -> O digito mais significativo mostra o sinal, 0 é positivo e 1 é negativo, o resto é um calculo normal
+COMPLEMENTO DE 1 -> Se o digito mais significativo for 0 é positivo e o calculo é normal, se for 1 é negativo e inverte os bits(faz um not em cada bit), duplicidade do  0
+COMPLEMENTO DE 2 -> A mesma coisa do  Complemento de 1 porem nao tem a duplicidade do 0, é so somar um  no Complemento de 1,
+
+2) Responda verdadeiro (V) ou falso (F)
+
+[F] é possível expressar o valor 1024 com 11 bits na representaçao complemento de 2.
+[F] é possível expressar o valor -1024 com 11 bits na representaçao complemento de 2.
+[F] é possível expressar o valor 1024 com 10 bits na representaçao sem sinal.
+[V] é possível expressar o valor -511 com 10 bits na representaçao sinal e magnitude.
+[F] é possível expressar o valor 8192 com 13 bits na representaçao sem sinal.
+[V] é possível expressar o valor 4095 com 13 bits na representaçao complemento de 2.
+
+
+MAXIMO DA REPRESENTACAO EM NUMERO DE BITS (n = numero de bits)
+
+SEM SINAL -> 0 ate (2ˆn)-1
+SINAL DE MAGNITUDE -> - (2ˆn-1)-1 ate (2ˆn-1) -1
+COMPLEMENTO DE 1 ->  -(2ˆn-1) ate (2ˆn-1) -1 tem 2 zeros
+COMPLEMENTO DE 2 ->  -(2ˆn-1) ate (2ˆn-1) -1 
+
+3)  Considere o seguinte mapa de memoria, que descreve um programa do IAS em linguagem de maquina:
+
+    000 0D 01 00 00 00    
+    010 01 10 01 41 23
+    011 12 01 20 11 01
+    012 07 10 42 11 00
+    013 0D 01 32 00 12
+    083 00 00 00 01 03
+    100 00 00 00 00 83
+    101 00 00 00 00 99
+    103 00 00 00 00 02
+    104 FF FF FF FF FF
+    105 00 10 10 01 10
+    106 00 00 00 00 01
+
+    a) Preencha a tabela a seguir com o valor dos registradores ao termino do ciclo de busca da instrucao a esquerda da palavra de memoria no endereco 0x011?
+        AC      MBR     IBR     IR      MAR     PC
+    b) Substitua o conteudo da memoria no endereco 0x104 pelo valor “00 00 00 00 xx”, onde xx corresponde aos dois ultimos dıgitos do seu RA.Dada a modificacao acima, preencha o 
+    tabela a seguir com o valor dos registradores ao termino do ciclo de execucao da instrucao a esquerda da palavra de memoria no endereco 0x013?
+        AC      MBR     IBR     IR      MAR
+
+4)
+    a) Quando ficou pronto e quem liderou a  construçao do computador do instituto de estudos avançados de Princeton(IAS)?
+    b) O que acontece com o registrador  IR no ciclo de busca da instruçao ADD M(0x100)?
+    c) Quais as vantagens de se utilizar transistores em vez de valvulas para o desenvolvimento de computadores?
+    d) O que é a Lei de Moore e o que ela diz?
+    e) O que é o  Tear de Jacquard e porque ele é importante?
+
+5) Monte o programa abaixo e, utilizando o mapa de memoria gerado, responda as seguintes perguntas
+    .set INICIO 0x100
+    .org INICIO
+    LOAD M(x1)
+    rotulo1:
+    RSH
+    .align 1
+    rotulo2:
+    ADD M(x2)
+    STOR M(rotulo1)
+    JUMP M(cont)
+    .align 2
+    cont:
+    RSH
+    STOR M(av)
+    JUMP+ M(rotulo2)
+    .align 1
+    x1: .word 0000000000
+    x2: .word 0000000002
+    .align 2
+    av: .word 0000000000
+    vet: .wfill 0x10, 0000000001
+    .align 2
+    vm: .word x1
+    a) Qual o valor, em hexadecimal, da palavra de memoria associada ao endereco 0x100?
+    b) Qual o endereco, em hexadecimal, do rotulo vm?
+    c) Qual o valor, em hexadecimal, da palavra de memoria associada ao endereco 0x104?
+    d) Qual o valor, em hexadecimal, da palavra de memoria gerada pelo montador associada ao maior endereco?
+    e) Considerando o processo de montagem em dois passos, como visto em aula, preencha a tabela abaixo com os
+    rotulos e as posicoes associadas a cada rodulo ao termino do primeiro passo de montagem:
+    ROTULO                      POSICAO
