@@ -1,1 +1,2 @@
-./montador.sh: line 58: ./bin/montador-p1.x: No such file or directory
+ERRO LEXICO: palavra inválida na linha 1!
+ .

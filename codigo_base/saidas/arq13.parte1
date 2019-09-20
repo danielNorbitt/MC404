@@ -1,1 +1,25 @@
-./montador.sh: line 58: ./bin/montador-p1.x: No such file or directory
+Lista de tokens
+Token 0
+	Tipo: 1002 (Definicao Rotulo)
+	Palavra: "var1:"
+	Linha: 3
+Token 1
+	Tipo: 1001 (Diretiva)
+	Palavra: ".word"
+	Linha: 4
+Token 2
+	Tipo: 1004 (Decimal)
+	Palavra: "10"
+	Linha: 4
+Token 3
+	Tipo: 1002 (Definicao Rotulo)
+	Palavra: "var2:"
+	Linha: 5
+Token 4
+	Tipo: 1001 (Diretiva)
+	Palavra: ".word"
+	Linha: 6
+Token 5
+	Tipo: 1001 (Diretiva)
+	Palavra: ".word"
+	Linha: 6

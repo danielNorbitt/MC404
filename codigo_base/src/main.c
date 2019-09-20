@@ -1,6 +1,4 @@
 #include "montador.h"
-#include "processarEntrada.c"
-#include "token.c"
 #include <stdio.h>
 
 /* Retorna:

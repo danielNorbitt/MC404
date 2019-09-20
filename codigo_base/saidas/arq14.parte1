@@ -1,1 +1,17 @@
-./montador.sh: line 58: ./bin/montador-p1.x: No such file or directory
+Lista de tokens
+Token 0
+	Tipo: 1002 (Definicao Rotulo)
+	Palavra: "hello:"
+	Linha: 2
+Token 1
+	Tipo: 1001 (Diretiva)
+	Palavra: ".wfill"
+	Linha: 3
+Token 2
+	Tipo: 1004 (Decimal)
+	Palavra: "100000000"
+	Linha: 3
+Token 3
+	Tipo: 1003 (Hexadecimal)
+	Palavra: "0x10"
+	Linha: 3

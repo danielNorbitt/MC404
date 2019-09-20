@@ -42,10 +42,12 @@ int len(char palavra[]){
 
 Boolean isIntrucaoValido(char palavra[]){
     Boolean valido = true;
-    char funcoes[][8] = {"LD","LDINV","LDABS","LDMQ","LDMQMX","STORE","JUMP","JGE","ADD","ADDABS","SUB","SUBABS","MULT","DIV","LSH","RSH","STOREND"};
+    char funcoesMax[][8] = {"LD","LDINV","LDABS","LDMQ","LDMQMX","STORE","JUMP","JGE","ADD","ADDABS","SUB","SUBABS","MULT","DIV","LSH","RSH","STOREND"};
+    char funcoesMin[][8] = {"ld","ldinv","ldabs","ldmq","ldmqmx","store","jump","jge","add","addabs","sub","subabs","mult","div","lsh","rsh","storend"};
+
     int achei = -1;
     for (int i = 0; i < 17; i++){
-        if(!strcmp(palavra,funcoes[i])) 
+        if(!strcmp(palavra,funcoesMax[i]) || !strcmp(palavra,funcoesMin[i])) 
             achei = i;
     }
     switch (achei){
@@ -60,9 +62,10 @@ Boolean isIntrucaoValido(char palavra[]){
 Boolean isDiretivaValido(char palavra[] ){
     Boolean valido = true;
     int achei = -1;
-    char diretivasValidas[][7] = {".set",".org",".align",".wfill",".word"};
+    char diretivasValidasMin[][7] = {".set",".org",".align",".wfill",".word"};
+    char diretivasValidasMax[][7] = {".SET",".ORG",".ALIGN",".WFILL",".WORD"};
     for (int i = 0; i < 5; i++){
-        if(!strcmp(palavra,diretivasValidas[i])) 
+        if(!strcmp(palavra,diretivasValidasMin[i]) || !strcmp(palavra,diretivasValidasMax[i])) 
             achei = i;
     }
     switch (achei){
@@ -90,7 +93,7 @@ Boolean isNomeValido(char palavra[] ){
             if(palavra[i] != '_')
                 valido = false;
     }
-    if (!isalpha(palavra[0])){
+    if (!isalpha(palavra[0]) && palavra[0] != '_'){
         valido = false;
     }
     return valido;
@@ -108,7 +111,7 @@ Boolean isRotuloValido(char palavra[]){
     if (palavra[len(palavra)-1] != ':'){
         valido = false;
     }
-    if(!isalpha(palavra[0])){
+    if(!isalpha(palavra[0]) && palavra[0] != '_'){
         valido = false;
     }
     for (int i = 0; i < len(palavra)-1; i++){
@@ -120,12 +123,12 @@ Boolean isRotuloValido(char palavra[]){
 }
 Boolean isHexadecimalValido(char palavra[]){
     Boolean valido = true;    
-    if (len(palavra) > 12)
+    if (len(palavra) > 12 || len(palavra) < 3)
         valido = false;
-    if(palavra[0] != '0' && palavra[1] != 'x')
+    if(palavra[0] != '0' && (palavra[1] != 'x' || palavra[1] != 'X'))
         valido = false;
-    for (int i = 0; i < len(palavra); i++){
-        if(!isalnum(palavra[i]))
+    for (int i = 2; i < len(palavra); i++){
+        if(!(palavra[i] >= '0'&& palavra[i] <= '9') && !(palavra[i] >= 'A'&& palavra[i] <= 'F'))
             valido = false;
     }
     return  valido;
@@ -164,7 +167,6 @@ int qualToken(char palavra[]){
 int processarEntrada(char* entrada, unsigned tamanho){
     // contador de linhas
     int countLinha = 1;
-    int n = 0;
     // palavra que esta sendo analizada
     char palavra[65];
     char *novaPalavra;
@@ -183,10 +185,14 @@ int processarEntrada(char* entrada, unsigned tamanho){
                         // pega a palavra separada por espaço
                         palavra[k-i] = k != j ? entrada[k] : '\0' ;
                     token = qualToken(palavra);   
-                    if(token)
+                    if(token){
                         novaPalavra = malloc(sizeof(char)*65);
                         strcpy(novaPalavra, palavra);
                         adicionarToken(token,novaPalavra,countLinha);
+                    }else{
+                        fprintf(stderr,"ERRO LEXICO: palavra inválida na linha %d!\n",countLinha);
+                        return 1;
+                    }
                     i = j;
                     break;
                 }
@@ -198,3 +204,10 @@ int processarEntrada(char* entrada, unsigned tamanho){
 
     return 0;
 }
+// uma linha -> começa diretiva ou rotulo ou instrucao
+// se for rotulo -> direritva ou instrucao
+// se for instrucao 
+    // rsh / lsh / ldmqmx -> nao pedem nada 
+    // resto pede hex / decimal (0:2^31-1) -> passar do range ERRO GRAMATICAL / nome
+// diretiva ver cada caso
+// else erro gramatical
