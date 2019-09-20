@@ -50,13 +50,8 @@ Boolean isIntrucaoValido(char palavra[]){
         if(!strcmp(palavra,funcoesMax[i]) || !strcmp(palavra,funcoesMin[i])) 
             achei = i;
     }
-    switch (achei){
-    case -1: //TODO MUDAR ISSO PARA O DEFAULT
+    if (achei == -1)
         valido = false;
-        break;
-    default:
-        break;
-    }
     return valido;
 }
 Boolean isDiretivaValido(char palavra[] ){
@@ -68,26 +63,12 @@ Boolean isDiretivaValido(char palavra[] ){
         if(!strcmp(palavra,diretivasValidasMin[i]) || !strcmp(palavra,diretivasValidasMax[i])) 
             achei = i;
     }
-    switch (achei){
-    case 0:
-        break;
-    case 1:
-        break;
-    case 2:
-        break;
-    case 3:
-        break;
-    case 4:
-        break;
-    default:
+    if (achei == -1)
         valido = false;
-        break;
-    }
     return valido;
 }
 Boolean isNomeValido(char palavra[] ){
     Boolean valido = true;
-
     for (int i = 0; i < len(palavra); i++){
         if (!isalnum(palavra[i]))
             if(palavra[i] != '_')
@@ -105,7 +86,7 @@ Boolean isRotuloValido(char palavra[]){
        if(palavra[i] == ':')
             count2p++;
     }
-    if(count2p != 1){ // erro 
+    if(count2p != 1){
         valido = false;
     }
     if (palavra[len(palavra)-1] != ':'){
