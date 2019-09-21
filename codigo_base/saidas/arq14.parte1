@@ -1,3 +1,9 @@
+=========================DEBUG================================
+Token 0
+	Tipo: 1002 (Definicao Rotulo)
+	Palavra: "hello:"
+	Linha: 2
+==========================DEBUG===============================
 Lista de tokens
 Token 0
 	Tipo: 1002 (Definicao Rotulo)

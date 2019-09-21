@@ -25,6 +25,24 @@ const char* get_error_string (enum errors code) {
         * 1 caso haja erro na montagem; (imprima o erro em stderr)
         * 0 caso não haja erro.         (Caso não haja erro, na parte 1, ao retornar desta função, a lista de Tokens (adicionados utilizando a função adicionarToken()) é impressa)
 */
+void debug(Token* tokens[],int controle){
+    char *tokenNames[] = {
+        "Instrucao",
+        "Diretiva",
+        "Definicao Rotulo",
+        "Hexadecimal",
+        "Decimal",
+        "Nome"};
+    printf("=========================DEBUG================================\n");
+    for (int i = 0; i < controle; i++){
+        printf("Token %d\n", i);
+        printf("\tTipo: %d (%s)\n", (int)tokens[i]->tipo, tokenNames[(int)tokens[i]->tipo - (int)Instrucao]);
+        printf("\tPalavra: \"%s\"\n", tokens[i]->palavra);
+        printf("\tLinha: %u\n", tokens[i]->linha);
+    }
+    printf("==========================DEBUG===============================\n");
+}
+
 
 // tipo booleano para facilitar a compreensao
 typedef enum Boolean {
@@ -38,6 +56,16 @@ int len(char palavra[]){
        tamanho++;
     }
     return tamanho;
+}
+
+int stringToInt(char palavra[]){
+    int res = 0;
+    int uni = 1;
+    for (int i = len(palavra)-1; i > 0; i--){
+        res += (palavra[i] - '0') * uni;
+        uni *= 10;
+    }
+    return res;
 }
 
 Boolean isIntrucaoValido(char palavra[]){
@@ -153,7 +181,7 @@ int processarEntrada(char* entrada, unsigned tamanho){
     char *novaPalavra;
     // boolean que  controla oq é um comentario
     Boolean isComentario = false;
-    TipoDoToken  token;
+    TipoDoToken  tipoToken;
     for (int i = 0; i < tamanho; i++){
         if(entrada[i] == '\n')
             isComentario = false;  
@@ -165,11 +193,11 @@ int processarEntrada(char* entrada, unsigned tamanho){
                     for (int k = i; k <= j; k++)
                         // pega a palavra separada por espaço
                         palavra[k-i] = k != j ? entrada[k] : '\0' ;
-                    token = qualToken(palavra);   
-                    if(token){
+                    tipoToken = qualToken(palavra);   
+                    if(tipoToken){
                         novaPalavra = malloc(sizeof(char)*65);
                         strcpy(novaPalavra, palavra);
-                        adicionarToken(token,novaPalavra,countLinha);
+                        adicionarToken(tipoToken,novaPalavra,countLinha);
                     }else{
                         fprintf(stderr,"ERRO LEXICO: palavra inválida na linha %d!\n",countLinha);
                         return 1;
@@ -182,6 +210,18 @@ int processarEntrada(char* entrada, unsigned tamanho){
         if (entrada[i] == '\n') 
             countLinha++;
     }
+    Token *linhaTokenAtual[4];
+    int controle = 0;
+    Token *token;
+    int linhaAtual = 2;
+    for (int i = 0; i < getNumberOfTokens(); i++){
+        token = recuperaToken(i);
+        if(token->linha == linhaAtual){
+            linhaTokenAtual[controle] = token;
+            controle++;
+        }
+    }
+    debug(linhaTokenAtual,controle);
 
     return 0;
 }

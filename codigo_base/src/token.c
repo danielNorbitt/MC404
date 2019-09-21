@@ -26,7 +26,7 @@ unsigned adicionarToken(TipoDoToken tipo, char* palavra, unsigned int linha) {
   }
 
   tokens[tamTokens].tipo = tipo;
-  tokens[tamTokens].palavra = palavra;
+  tokens[tamTokens].palavra = palavra; 
   tokens[tamTokens].linha = linha;
   return tamTokens++;
 }

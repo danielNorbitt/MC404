@@ -1,3 +1,17 @@
+=========================DEBUG================================
+Token 0
+	Tipo: 1002 (Definicao Rotulo)
+	Palavra: "vetor2:"
+	Linha: 2
+Token 1
+	Tipo: 1001 (Diretiva)
+	Palavra: ".word"
+	Linha: 2
+Token 2
+	Tipo: 1003 (Hexadecimal)
+	Palavra: "0x10"
+	Linha: 2
+==========================DEBUG===============================
 Lista de tokens
 Token 0
 	Tipo: 1002 (Definicao Rotulo)
