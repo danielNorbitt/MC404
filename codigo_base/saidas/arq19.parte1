@@ -1,13 +1,3 @@
-=========================DEBUG================================
-Token 0
-	Tipo: 1000 (Instrucao)
-	Palavra: "ld"
-	Linha: 2
-Token 1
-	Tipo: 1003 (Hexadecimal)
-	Palavra: "0x10"
-	Linha: 2
-==========================DEBUG===============================
 Lista de tokens
 Token 0
 	Tipo: 1001 (Diretiva)

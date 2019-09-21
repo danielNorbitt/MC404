@@ -33,14 +33,14 @@ void debug(Token* tokens[],int controle){
         "Hexadecimal",
         "Decimal",
         "Nome"};
-    printf("=========================DEBUG================================\n");
+    printf("======================DEBUG==========================\n");
     for (int i = 0; i < controle; i++){
         printf("Token %d\n", i);
         printf("\tTipo: %d (%s)\n", (int)tokens[i]->tipo, tokenNames[(int)tokens[i]->tipo - (int)Instrucao]);
         printf("\tPalavra: \"%s\"\n", tokens[i]->palavra);
         printf("\tLinha: %u\n", tokens[i]->linha);
     }
-    printf("==========================DEBUG===============================\n");
+    printf("======================DEBUG==========================\n");
 }
 
 
@@ -172,6 +172,7 @@ int qualToken(char palavra[]){
     }
     return false;
 }
+Boolean erro(Token* linha[],int controle);
 
 int processarEntrada(char* entrada, unsigned tamanho){
     // contador de linhas
@@ -210,20 +211,78 @@ int processarEntrada(char* entrada, unsigned tamanho){
         if (entrada[i] == '\n') 
             countLinha++;
     }
-    Token *linhaTokenAtual[4];
-    int controle = 0;
+    Token *linhaTokenAtual[10];
     Token *token;
-    int linhaAtual = 2;
-    for (int i = 0; i < getNumberOfTokens(); i++){
-        token = recuperaToken(i);
-        if(token->linha == linhaAtual){
-            linhaTokenAtual[controle] = token;
-            controle++;
+    int controle;
+    int linhaAtual = 1;
+    while (linhaAtual < countLinha){
+        controle = 0;
+        for (int i = 0; i < getNumberOfTokens(); i++){
+            token = recuperaToken(i);
+            if(token->linha == linhaAtual){
+                linhaTokenAtual[controle] = token;
+                controle++;
+            }
         }
+        if(erro(linhaTokenAtual,controle))
+            debug(linhaTokenAtual,controle);
+        linhaAtual++;
     }
-    debug(linhaTokenAtual,controle);
-
     return 0;
+}
+
+
+Boolean erro(Token* linha[],int controle){
+    int erro = false;
+    if(linha[0]->tipo != Diretiva || linha[0]->tipo != DefRotulo || linha[0]->tipo != Instrucao)
+        erro = true;
+    if(controle > 4)
+        erro = true;
+    for (int i = 0; i < controle; i++){
+        switch (linha[i]->tipo){
+            case DefRotulo:
+                if(linha[i+1]->tipo != Diretiva || linha[i+1]->tipo != Instrucao)
+                    erro = true;
+                break;
+            case Instrucao:
+                char semParametro[][8] = {"LSH","RSH","LDMQMX","lsh","rsh","ldmqmx"};
+                int achei = -1;
+                for (int i = 0; i < 6; i++){
+                    if(!strcmp(linha[i],semParametro[i])) 
+                        achei = i;
+                }
+                if(achei == -1){
+                // com parametro
+                }else{
+
+                }
+                break;
+            case Diretiva:
+                switch(linha[i]->palavra[2]){
+                    // .set
+                    case 'e':
+                        break;
+                    // .wfill
+                    case 'f':
+                        break;
+                    // .org
+                    case 'r':
+                        break;
+                    // .align
+                    case 'l':
+                        break;
+                    // .word
+                    case 'o':
+                        break;
+                }
+                break;
+            default:
+                break;
+            }
+    }
+    // fazer contagem se tem tipo repetido (rotulo,diretiva ou instrucao)
+
+    return erro;
 }
 // uma linha -> começa diretiva ou rotulo ou instrucao
 // se for rotulo -> direritva ou instrucao
@@ -231,4 +290,12 @@ int processarEntrada(char* entrada, unsigned tamanho){
     // rsh / lsh / ldmqmx -> nao pedem nada 
     // resto pede hex / decimal (0:2^31-1) -> passar do range ERRO GRAMATICAL / nome
 // diretiva ver cada caso
+    //  2 parametros
+        //  .set -> nome && hex | decimal (0:2^31-1) 
+        //  .wfill -> decimal (0:1023) && hex | decimal (-2^31:2^31-1)
+    // 1 parametro
+        //  .org -> hex | decimal (0:1023)
+        //  .align -> decimal (0:1023)
+        //  .word hex | decimal (-2^31:2^31-1) | rotulo | nome
+
 // else erro gramatical
