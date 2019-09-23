@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 
+#define Max (int) (2 * pow(10,31))
 /*
 Exemplo de erros:
 const char* get_error_string (enum errors code) {
@@ -56,16 +58,6 @@ int len(char palavra[]){
        tamanho++;
     }
     return tamanho;
-}
-
-int stringToInt(char palavra[]){
-    int res = 0;
-    int uni = 1;
-    for (int i = len(palavra)-1; i > 0; i--){
-        res += (palavra[i] - '0') * uni;
-        uni *= 10;
-    }
-    return res;
 }
 
 Boolean isIntrucaoValido(char palavra[]){
@@ -173,8 +165,25 @@ int qualToken(char palavra[]){
     return false;
 }
 Boolean erro(Token* linha[],int controle);
+Boolean maisDeUm(Token *linha[], int controle){
+    int countRotulo = 0;
+    int countDiretiva = 0;
+    int countInstrucao = 0;
+    for (int i = 0; i < controle; i++){
+        if (linha[i]->tipo == DefRotulo)
+            countRotulo++;
+        if (linha[i]->tipo == Instrucao)
+            countInstrucao++;
+        if (linha[i]->tipo == Diretiva)
+            countDiretiva++;
+    }
+    if (countDiretiva > 1 || countInstrucao > 1 || countRotulo > 1){
+        return true;
+    }
+    return false;
+}
 
-int processarEntrada(char* entrada, unsigned tamanho){
+int processarEntrada(char *entrada, unsigned tamanho){
     // contador de linhas
     int countLinha = 1;
     // palavra que esta sendo analizada
@@ -211,7 +220,7 @@ int processarEntrada(char* entrada, unsigned tamanho){
         if (entrada[i] == '\n') 
             countLinha++;
     }
-    Token *linhaTokenAtual[10];
+    Token *linhaTokenAtual[7];
     Token *token;
     int controle;
     int linhaAtual = 1;
@@ -219,13 +228,17 @@ int processarEntrada(char* entrada, unsigned tamanho){
         controle = 0;
         for (int i = 0; i < getNumberOfTokens(); i++){
             token = recuperaToken(i);
-            if(token->linha == linhaAtual){
+            if (token->linha == linhaAtual){
                 linhaTokenAtual[controle] = token;
                 controle++;
             }
         }
-        if(erro(linhaTokenAtual,controle))
-            debug(linhaTokenAtual,controle);
+        linhaTokenAtual[controle+1] = NULL;
+        if(controle != 0 && erro(linhaTokenAtual,controle)){
+            fprintf(stderr, "ERRO GRAMATICAL: palavra na linha %d!\n", linhaAtual);
+            // debug(linhaTokenAtual,controle);
+            return 1;
+        }
         linhaAtual++;
     }
     return 0;
@@ -233,56 +246,132 @@ int processarEntrada(char* entrada, unsigned tamanho){
 
 
 Boolean erro(Token* linha[],int controle){
-    int erro = false;
-    if(linha[0]->tipo != Diretiva || linha[0]->tipo != DefRotulo || linha[0]->tipo != Instrucao)
-        erro = true;
-    if(controle > 4)
-        erro = true;
+    if(linha[0]->tipo != Diretiva && linha[0]->tipo != DefRotulo && linha[0]->tipo != Instrucao){
+        printf("lala1\n");
+        return true;
+    }
+    if(controle > 4){
+        printf("lala2\n");
+        return true;
+    }
     for (int i = 0; i < controle; i++){
         switch (linha[i]->tipo){
-            case DefRotulo:
-                if(linha[i+1]->tipo != Diretiva || linha[i+1]->tipo != Instrucao)
-                    erro = true;
-                break;
-            case Instrucao:
-                char semParametro[][8] = {"LSH","RSH","LDMQMX","lsh","rsh","ldmqmx"};
+            // case DefRotulo:
+            //     if(linha[i+1]->tipo != Diretiva && linha[i+1]->tipo != Instrucao)
+            //         return true;
+            //     break;
+            case Instrucao:{
+                char semParametro[6][8] = {"LSH","RSH","LDMQMX","lsh","rsh","ldmqmx"};
                 int achei = -1;
-                for (int i = 0; i < 6; i++){
-                    if(!strcmp(linha[i],semParametro[i])) 
+                for (int j = 0; j < 6; j++){
+                    if(!strcmp(linha[i]->palavra,semParametro[j])) 
                         achei = i;
                 }
                 if(achei == -1){
-                // com parametro
+                    if (linha[i + 1]->tipo != Hexadecimal && linha[i + 1]->tipo != Nome && linha[i + 1]->tipo != Decimal ){
+                        printf("lala3\n");
+                        return true;
+                    }
+                    if (linha[i + 1]->tipo == Decimal){
+                        if (atoi(linha[i + 1]->palavra) < 0 || atoi(linha[i + 1]->palavra)>1023){
+                            printf("lala4\n");
+                            return true;
+                        }
+                    }
                 }else{
-
                 }
                 break;
+            }
             case Diretiva:
-                switch(linha[i]->palavra[2]){
-                    // .set
-                    case 'e':
-                        break;
-                    // .wfill
-                    case 'f':
-                        break;
-                    // .org
-                    case 'r':
-                        break;
-                    // .align
-                    case 'l':
-                        break;
-                    // .word
-                    case 'o':
-                        break;
+            // .set
+                if (linha[i]->palavra[2] == 'e' || linha[i]->palavra[2] == 'E'){
+                    if (linha[i + 1]->tipo != Nome){
+                        printf("lala6\n");
+                        return true;
+                    }
+                    if (linha[i + 2]->tipo != Hexadecimal && linha[i + 2]->tipo != Decimal ){
+                        printf("lala7 %d\n",linha[i+2]->tipo);
+                        return true;
+                    }
+                    if (linha[i + 2]->tipo == Decimal){
+                        if (atoi(linha[i + 2]->palavra) < 0 || atoi(linha[i + 2]->palavra) > (Max - 1))
+                        {
+                            printf("lala8\n");
+                            return true;
+                        }
+                    }
+                }
+                //.wfill
+                else if (linha[i]->palavra[2] == 'f' || linha[i]->palavra[2] == 'F'){
+                    if (linha[i + 1]->tipo != Decimal){
+                        printf("lala9\n");
+                        return true;
+                    }
+                    else{
+                        if (atoi(linha[i + 1]->palavra) < 1 || atoi(linha[i + 1]->palavra) > 1023){
+                            printf("lala10\n");
+                            return true;
+                        }
+                    }
+                    if (linha[i + 2]->tipo != Hexadecimal && linha[i + 2]->tipo != Decimal && linha[i + 2]->tipo != Nome){
+                        printf("lala11\n");
+                        return true;
+                    }
+                    if (linha[i + 2]->tipo == Decimal){
+                        if (atoi(linha[i + 2]->palavra) < (-1 * Max) || atoi(linha[i + 2]->palavra) > (Max - 1)){
+                            printf("lala12\n");
+                            return true;
+                        }
+                    }
+                }
+                // //.org
+                else if (linha[i]->palavra[2] == 'r' || linha[i]->palavra[2] == 'R'){
+                    if (linha[i + 1]->tipo != Decimal && linha[i + 1]->tipo != Hexadecimal){
+                        printf("lala13\n");
+                        return true;
+                    }
+                    if (linha[i + 1]->tipo == Decimal){
+                        if (atoi(linha[i + 1]->palavra) < 0 && atoi(linha[i + 1]->palavra) > 1023){
+                            printf("lala14\n");
+                            return true;
+                        }
+                    }
+                }
+                // //.align
+                else if (linha[i]->palavra[2] == 'l' || linha[i]->palavra[2] == 'L'){
+                    if (linha[i + 1]->tipo != Decimal){
+                        printf("lala16\n");
+                        return true;
+                    }
+                    else{
+                        if (atoi(linha[i + 1]->palavra) < 0 || atoi(linha[i + 1]->palavra) > 1023){
+                            printf("lala17\n");
+                            return true;
+                        }
+                    }
+                }
+                // // // .word
+                else if (linha[i]->palavra[2] == 'o' || linha[i]->palavra[2] == 'O'){
+                    if (linha[i + 1]->tipo != Decimal && linha[i + 1]->tipo != Hexadecimal && linha[i + 1]->tipo != Nome && linha[i + 1]->tipo != DefRotulo){
+                        printf("lala19\n");
+                        return true;
+                    }
+                    else if(linha[i + 1]->tipo == Decimal){
+                        if (atoi(linha[i + 1]->palavra) < (-1 * Max) || atoi(linha[i + 1]->palavra) > Max - 1){
+                            printf("lala20\n");
+                            return true;
+                        }
+                    }
                 }
                 break;
             default:
                 break;
-            }
+        }
     }
-    // fazer contagem se tem tipo repetido (rotulo,diretiva ou instrucao)
-
-    return erro;
+    if (maisDeUm(linha,controle)){
+        return true;
+    }
+    return false;
 }
 // uma linha -> começa diretiva ou rotulo ou instrucao
 // se for rotulo -> direritva ou instrucao
