@@ -5,7 +5,6 @@
 #include <ctype.h>
 #include <math.h>
 
-
 #define Max (int) (2 * pow(10,31))
 /*
 Exemplo de erros:
@@ -27,13 +26,88 @@ const char* get_error_string (enum errors code) {
         * 1 caso haja erro na montagem; (imprima o erro em stderr)
         * 0 caso não haja erro.         (Caso não haja erro, na parte 1, ao retornar desta função, a lista de Tokens (adicionados utilizando a função adicionarToken()) é impressa)
 */
-
 // tipo booleano para facilitar a compreensao
 typedef enum Boolean {
     false = 0,true
 }Boolean;
 
+Boolean isIntrucaoValido(char palavra[]); // Verifica se a palavra é uma instrucao
+Boolean isDiretivaValido(char palavra[] ); // Verifica se a palavra é uma diretiva: 1 letra é um . ; se o resto é uma das palavras reservadas
+Boolean isNomeValido(char palavra[] ); // Verifica se a palavra é um  Nome: se so tem caracteres nao alfanumericos ou _
+Boolean isRotuloValido(char palavra[]); // Verifica se a palavra é um Rotulo: se o ultimo caractere é um :, se tem so caracteres alfanumericos ou _
+Boolean isHexadecimalValido(char palavra[]); // Verifica se a palavra é um Hecidecimal: se o ultimo caractere é um : os primeiros caracteres sao 0x, se tem so caracteres de 0-9 Aa - Ff ou o tamanhaho
+Boolean isDecimalValido(char palavra[]); // Verifica se a palavra é um Decimal: se so tem caracteres numericos
 
+int qualToken(char palavra[]); // Retorna qual o tipo de token a palavra é 
+
+Boolean erro(Token* linha[],int controle); // Verifica todos tipos de erros gramaticais possiveis
+Boolean maisDeUm(Token *linha[], int controle); // Verifica se existe mais de 1 Diretiva, Instrucao ou Rotulo em uma mesma linha
+
+int processarEntrada(char *entrada, unsigned tamanho){
+    // contador de linhas
+    int countLinha = 1;
+    // palavra que esta sendo analizada
+    char palavra[65];
+    char *novaPalavra;
+    // boolean que  controla oq é um comentario
+    Boolean isComentario = false;
+    // tipo do token da palavra atual
+    TipoDoToken  tipoToken;
+
+    // PARTE QUE LE A ENTRADA, ADICIONA OS TOKENS A LISTA DE TOKENS E SE VERIFICA ERROS LEXICOS
+    for (int i = 0; i < tamanho; i++){
+        if(entrada[i] == '\n')
+            // volta a ler as palavras dps dos comentarios
+            isComentario = false;  
+        if (entrada[i] != ' ' && entrada[i] != '\n'){
+            for (int j = i; entrada[j] != '\0'; j++){
+                if(entrada[j] == '#')
+                // ignora as palavras apos o #, sao comentarios
+                    isComentario = true;
+                if ((entrada[j] == ' ' || entrada[j] == '\n' ) && !isComentario){
+                    for (int k = i; k <= j; k++)
+                        // pega a palavra separada por espaço
+                        palavra[k-i] = k != j ? entrada[k] : '\0';
+                    tipoToken = qualToken(palavra);   
+                    if(tipoToken){
+                        novaPalavra = malloc(sizeof(char)*65);
+                        strcpy(novaPalavra, palavra);
+                        adicionarToken(tipoToken,novaPalavra,countLinha);
+                    }else{
+                        fprintf(stderr,"ERRO LEXICO: palavra inválida na linha %d!\n",countLinha);
+                        return 1;
+                    }
+                    i = j;
+                    break;
+                }
+            }
+        }
+        if (entrada[i] == '\n') 
+            countLinha++;
+    }
+
+    // PARTE QUE VERIFICA OS ERROS GRAMATICAIS
+    Token *linhaTokenAtual[7];
+    Token *token;
+    int controle;
+    int linhaAtual = 1;
+    while (linhaAtual < countLinha){
+        controle = 0;
+        for (int i = 0; i < getNumberOfTokens(); i++){
+            token = recuperaToken(i);
+            if (token->linha == linhaAtual){
+                linhaTokenAtual[controle] = token;
+                controle++;
+            }
+        }
+        if(controle != 0 && erro(linhaTokenAtual,controle)){
+            fprintf(stderr, "ERRO GRAMATICAL: palavra na linha %d!\n", linhaAtual);
+            return 1;
+        }
+        linhaAtual++;
+    }
+    return 0;
+}
 Boolean isIntrucaoValido(char palavra[]){
     Boolean valido = true;
     char funcoesMax[][8] = {"LD","LDINV","LDABS","LDMQ","LDMQMX","STORE","JUMP","JGE","ADD","ADDABS","SUB","SUBABS","MULT","DIV","LSH","RSH","STOREND"};
@@ -116,108 +190,6 @@ Boolean isDecimalValido(char palavra[]){
     }
     return valido;
 }
-
-int qualToken(char palavra[]){
-    if (isDiretivaValido(palavra)){
-        return Diretiva;
-    }
-    if (isIntrucaoValido(palavra)){
-        return Instrucao;
-    }
-    if (isRotuloValido(palavra)){
-        return DefRotulo;
-    }
-    if (isHexadecimalValido(palavra)){
-        return Hexadecimal;
-    }
-    if (isDecimalValido(palavra)){
-        return Decimal;
-    }
-    if (isNomeValido(palavra)){
-        return Nome;
-    }
-    return false;
-}
-Boolean erro(Token* linha[],int controle);
-Boolean maisDeUm(Token *linha[], int controle){
-    int countRotulo = 0;
-    int countDiretiva = 0;
-    int countInstrucao = 0;
-    for (int i = 0; i < controle; i++){
-        if (linha[i]->tipo == DefRotulo)
-            countRotulo++;
-        if (linha[i]->tipo == Instrucao)
-            countInstrucao++;
-        if (linha[i]->tipo == Diretiva)
-            countDiretiva++;
-    }
-    if (countDiretiva > 1 || countInstrucao > 1 || countRotulo > 1){
-        return true;
-    }
-    return false;
-}
-
-int processarEntrada(char *entrada, unsigned tamanho){
-    // contador de linhas
-    int countLinha = 1;
-    // palavra que esta sendo analizada
-    char palavra[65];
-    char *novaPalavra;
-    // boolean que  controla oq é um comentario
-    Boolean isComentario = false;
-    TipoDoToken  tipoToken;
-    for (int i = 0; i < tamanho; i++){
-        if(entrada[i] == '\n')
-            isComentario = false;  
-        if (entrada[i] != ' ' && entrada[i] != '\n'){
-            for (int j = i; entrada[j] != '\0'; j++){
-                if(entrada[j] == '#')
-                    isComentario = true;
-                if ((entrada[j] == ' ' || entrada[j] == '\n' ) && !isComentario){
-                    for (int k = i; k <= j; k++)
-                        // pega a palavra separada por espaço
-                        palavra[k-i] = k != j ? entrada[k] : '\0' ;
-                    tipoToken = qualToken(palavra);   
-                    if(tipoToken){
-                        novaPalavra = malloc(sizeof(char)*65);
-                        strcpy(novaPalavra, palavra);
-                        adicionarToken(tipoToken,novaPalavra,countLinha);
-                    }else{
-                        fprintf(stderr,"ERRO LEXICO: palavra inválida na linha %d!\n",countLinha);
-                        return 1;
-                    }
-                    i = j;
-                    break;
-                }
-            }
-        }
-        if (entrada[i] == '\n') 
-            countLinha++;
-    }
-    Token *linhaTokenAtual[7];
-    Token *token;
-    int controle;
-    int linhaAtual = 1;
-    while (linhaAtual < countLinha){
-        controle = 0;
-        for (int i = 0; i < getNumberOfTokens(); i++){
-            token = recuperaToken(i);
-            if (token->linha == linhaAtual){
-                linhaTokenAtual[controle] = token;
-                controle++;
-            }
-        }
-
-        if(controle != 0 && erro(linhaTokenAtual,controle)){
-            fprintf(stderr, "ERRO GRAMATICAL: palavra na linha %d!\n", linhaAtual);
-            return 1;
-        }
-        linhaAtual++;
-    }
-    return 0;
-}
-
-
 Boolean erro(Token* linha[],int controle){
     if(linha[0]->tipo != Diretiva && linha[0]->tipo != DefRotulo && linha[0]->tipo != Instrucao){
         return true;
@@ -352,18 +324,41 @@ Boolean erro(Token* linha[],int controle){
     }
     return false;
 }
-// uma linha -> começa diretiva ou rotulo ou instrucao
-// se for rotulo -> direritva ou instrucao
-// se for instrucao 
-    // rsh / lsh / ldmqmx -> nao pedem nada 
-    // resto pede hex / decimal (0:2^31-1) -> passar do range ERRO GRAMATICAL / nome
-// diretiva ver cada caso
-    //  2 parametros
-        //  .set -> nome && hex | decimal (0:2^31-1) 
-        //  .wfill -> decimal (0:1023) && hex | decimal (-2^31:2^31-1)
-    // 1 parametro
-        //  .org -> hex | decimal (0:1023)
-        //  .align -> decimal (0:1023)
-        //  .word hex | decimal (-2^31:2^31-1) | rotulo | nome
-
-// else erro gramatical
+int qualToken(char palavra[]){
+    if (isDiretivaValido(palavra)){
+        return Diretiva;
+    }
+    if (isIntrucaoValido(palavra)){
+        return Instrucao;
+    }
+    if (isRotuloValido(palavra)){
+        return DefRotulo;
+    }
+    if (isHexadecimalValido(palavra)){
+        return Hexadecimal;
+    }
+    if (isDecimalValido(palavra)){
+        return Decimal;
+    }
+    if (isNomeValido(palavra)){
+        return Nome;
+    }
+    return false;
+}
+Boolean maisDeUm(Token *linha[], int controle){
+    int countRotulo = 0;
+    int countDiretiva = 0;
+    int countInstrucao = 0;
+    for (int i = 0; i < controle; i++){
+        if (linha[i]->tipo == DefRotulo)
+            countRotulo++;
+        if (linha[i]->tipo == Instrucao)
+            countInstrucao++;
+        if (linha[i]->tipo == Diretiva)
+            countDiretiva++;
+    }
+    if (countDiretiva > 1 || countInstrucao > 1 || countRotulo > 1){
+        return true;
+    }
+    return false;
+}
