@@ -27,38 +27,12 @@ const char* get_error_string (enum errors code) {
         * 1 caso haja erro na montagem; (imprima o erro em stderr)
         * 0 caso não haja erro.         (Caso não haja erro, na parte 1, ao retornar desta função, a lista de Tokens (adicionados utilizando a função adicionarToken()) é impressa)
 */
-void debug(Token* tokens[],int controle){
-    char *tokenNames[] = {
-        "Instrucao",
-        "Diretiva",
-        "Definicao Rotulo",
-        "Hexadecimal",
-        "Decimal",
-        "Nome"};
-    printf("======================DEBUG==========================\n");
-    for (int i = 0; i < controle; i++){
-        printf("Token %d\n", i);
-        printf("\tTipo: %d (%s)\n", (int)tokens[i]->tipo, tokenNames[(int)tokens[i]->tipo - (int)Instrucao]);
-        printf("\tPalavra: \"%s\"\n", tokens[i]->palavra);
-        printf("\tLinha: %u\n", tokens[i]->linha);
-    }
-    printf("======================DEBUG==========================\n");
-}
-
 
 // tipo booleano para facilitar a compreensao
 typedef enum Boolean {
     false = 0,true
 }Boolean;
 
-// Calcula o tamanho de uma palavra, sem contar o '\0'
-int len(char palavra[]){
-    int tamanho = 0;
-    for (int i = 0; palavra[i] != '\0'; i++){
-       tamanho++;
-    }
-    return tamanho;
-}
 
 Boolean isIntrucaoValido(char palavra[]){
     Boolean valido = true;
@@ -89,7 +63,7 @@ Boolean isDiretivaValido(char palavra[] ){
 }
 Boolean isNomeValido(char palavra[] ){
     Boolean valido = true;
-    for (int i = 0; i < len(palavra); i++){
+    for (int i = 0; i < strlen(palavra); i++){
         if (!isalnum(palavra[i]))
             if(palavra[i] != '_')
                 valido = false;
@@ -102,20 +76,20 @@ Boolean isNomeValido(char palavra[] ){
 Boolean isRotuloValido(char palavra[]){
     Boolean valido = true;
     int count2p = 0;
-    for (int i = 0; i < len(palavra); i++){
+    for (int i = 0; i < strlen(palavra); i++){
        if(palavra[i] == ':')
             count2p++;
     }
     if(count2p != 1){
         valido = false;
     }
-    if (palavra[len(palavra)-1] != ':'){
+    if (palavra[strlen(palavra)-1] != ':'){
         valido = false;
     }
     if(!isalpha(palavra[0]) && palavra[0] != '_'){
         valido = false;
     }
-    for (int i = 0; i < len(palavra)-1; i++){
+    for (int i = 0; i < strlen(palavra)-1; i++){
         if (!isalnum(palavra[i]))
             if(palavra[i] != '_')
                 valido = false;      
@@ -124,11 +98,11 @@ Boolean isRotuloValido(char palavra[]){
 }
 Boolean isHexadecimalValido(char palavra[]){
     Boolean valido = true;    
-    if (len(palavra) > 12 || len(palavra) < 3)
+    if (strlen(palavra) > 12 || strlen(palavra) < 3)
         valido = false;
     if(palavra[0] != '0' && (palavra[1] != 'x' || palavra[1] != 'X'))
         valido = false;
-    for (int i = 2; i < len(palavra); i++){
+    for (int i = 2; i < strlen(palavra); i++){
         if(!(palavra[i] >= '0'&& palavra[i] <= '9') && !(palavra[i] >= 'A'&& palavra[i] <= 'F'))
             valido = false;
     }
@@ -136,7 +110,7 @@ Boolean isHexadecimalValido(char palavra[]){
 }
 Boolean isDecimalValido(char palavra[]){
     Boolean valido = true;
-    for (int i = 0; i < len(palavra); i++){
+    for (int i = 0; i < strlen(palavra); i++){
        if (!isdigit(palavra[i]))
           valido = false; 
     }
@@ -233,10 +207,9 @@ int processarEntrada(char *entrada, unsigned tamanho){
                 controle++;
             }
         }
-        linhaTokenAtual[controle+1] = NULL;
+
         if(controle != 0 && erro(linhaTokenAtual,controle)){
             fprintf(stderr, "ERRO GRAMATICAL: palavra na linha %d!\n", linhaAtual);
-            // debug(linhaTokenAtual,controle);
             return 1;
         }
         linhaAtual++;
@@ -247,21 +220,22 @@ int processarEntrada(char *entrada, unsigned tamanho){
 
 Boolean erro(Token* linha[],int controle){
     if(linha[0]->tipo != Diretiva && linha[0]->tipo != DefRotulo && linha[0]->tipo != Instrucao){
-        printf("lala1\n");
         return true;
     }
     if(controle > 4){
-        printf("lala2\n");
         return true;
     }
     for (int i = 0; i < controle; i++){
         switch (linha[i]->tipo){
-            // case DefRotulo:
-            //     if(linha[i+1]->tipo != Diretiva && linha[i+1]->tipo != Instrucao)
-            //         return true;
-            //     break;
+            case DefRotulo:
+                if(i != 0)
+                    return true;
+                if (controle != 1)
+                    if(linha[i+1]->tipo != Diretiva && linha[i+1]->tipo != Instrucao)
+                        return true;
+                break;
             case Instrucao:{
-                char semParametro[6][8] = {"LSH","RSH","LDMQMX","lsh","rsh","ldmqmx"};
+                char semParametro[6][8] = {"LSH","RSH","LDMQ","lsh","rsh","ldmq"};
                 int achei = -1;
                 for (int j = 0; j < 6; j++){
                     if(!strcmp(linha[i]->palavra,semParametro[j])) 
@@ -269,96 +243,101 @@ Boolean erro(Token* linha[],int controle){
                 }
                 if(achei == -1){
                     if (linha[i + 1]->tipo != Hexadecimal && linha[i + 1]->tipo != Nome && linha[i + 1]->tipo != Decimal ){
-                        printf("lala3\n");
                         return true;
                     }
                     if (linha[i + 1]->tipo == Decimal){
                         if (atoi(linha[i + 1]->palavra) < 0 || atoi(linha[i + 1]->palavra)>1023){
-                            printf("lala4\n");
                             return true;
                         }
                     }
                 }else{
+                    if(controle - 1 - i != 0){
+                        return true;
+                    }
                 }
                 break;
             }
             case Diretiva:
             // .set
                 if (linha[i]->palavra[2] == 'e' || linha[i]->palavra[2] == 'E'){
+                    if(controle - 1- i != 2){
+                        return true;
+                    }
                     if (linha[i + 1]->tipo != Nome){
-                        printf("lala6\n");
                         return true;
                     }
                     if (linha[i + 2]->tipo != Hexadecimal && linha[i + 2]->tipo != Decimal ){
-                        printf("lala7 %d\n",linha[i+2]->tipo);
                         return true;
                     }
                     if (linha[i + 2]->tipo == Decimal){
                         if (atoi(linha[i + 2]->palavra) < 0 || atoi(linha[i + 2]->palavra) > (Max - 1))
                         {
-                            printf("lala8\n");
                             return true;
                         }
                     }
+
                 }
                 //.wfill
                 else if (linha[i]->palavra[2] == 'f' || linha[i]->palavra[2] == 'F'){
+                    if(controle - 1- i != 2){
+                        return true;
+                    }
                     if (linha[i + 1]->tipo != Decimal){
-                        printf("lala9\n");
                         return true;
                     }
                     else{
                         if (atoi(linha[i + 1]->palavra) < 1 || atoi(linha[i + 1]->palavra) > 1023){
-                            printf("lala10\n");
                             return true;
                         }
                     }
                     if (linha[i + 2]->tipo != Hexadecimal && linha[i + 2]->tipo != Decimal && linha[i + 2]->tipo != Nome){
-                        printf("lala11\n");
                         return true;
                     }
                     if (linha[i + 2]->tipo == Decimal){
                         if (atoi(linha[i + 2]->palavra) < (-1 * Max) || atoi(linha[i + 2]->palavra) > (Max - 1)){
-                            printf("lala12\n");
                             return true;
                         }
                     }
                 }
                 // //.org
                 else if (linha[i]->palavra[2] == 'r' || linha[i]->palavra[2] == 'R'){
+                    if(controle - 1- i != 1){
+                        return true;
+                    }
                     if (linha[i + 1]->tipo != Decimal && linha[i + 1]->tipo != Hexadecimal){
-                        printf("lala13\n");
                         return true;
                     }
                     if (linha[i + 1]->tipo == Decimal){
                         if (atoi(linha[i + 1]->palavra) < 0 && atoi(linha[i + 1]->palavra) > 1023){
-                            printf("lala14\n");
                             return true;
                         }
                     }
                 }
                 // //.align
                 else if (linha[i]->palavra[2] == 'l' || linha[i]->palavra[2] == 'L'){
+                    if(controle - 1- i != 1){
+                        return true;
+                    }
                     if (linha[i + 1]->tipo != Decimal){
-                        printf("lala16\n");
                         return true;
                     }
                     else{
                         if (atoi(linha[i + 1]->palavra) < 0 || atoi(linha[i + 1]->palavra) > 1023){
-                            printf("lala17\n");
                             return true;
                         }
                     }
                 }
                 // // // .word
                 else if (linha[i]->palavra[2] == 'o' || linha[i]->palavra[2] == 'O'){
+                    if(controle - 1- i != 1){
+                        return true;
+                    }
                     if (linha[i + 1]->tipo != Decimal && linha[i + 1]->tipo != Hexadecimal && linha[i + 1]->tipo != Nome && linha[i + 1]->tipo != DefRotulo){
-                        printf("lala19\n");
                         return true;
                     }
                     else if(linha[i + 1]->tipo == Decimal){
                         if (atoi(linha[i + 1]->palavra) < (-1 * Max) || atoi(linha[i + 1]->palavra) > Max - 1){
-                            printf("lala20\n");
+
                             return true;
                         }
                     }
