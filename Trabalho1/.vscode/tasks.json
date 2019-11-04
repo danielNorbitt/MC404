@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [{
+        "type": "shell",
+        "label": "gcc build active file",
+        "command": "/bin/gcc",
+        "args": [
+            "-std=c99",
+            "-Wall",
+            // "-Werror",
+            "-g",
+            "${file}",
+            "-o",
+            "${fileDirname}/${fileBasenameNoExtension}"
+        ],
+        "options": {
+            "cwd": "/bin"
+        },
+        "problemMatcher": [
+            "$gcc"
+        ]
+    }]
+}

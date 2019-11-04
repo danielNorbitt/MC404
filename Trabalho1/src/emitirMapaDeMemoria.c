@@ -1,6 +1,9 @@
 #include "montador.h"
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
 
 /*
     ---- Voce deve implementar essa função para a Parte 2! ----
@@ -11,6 +14,7 @@
  */
 int emitirMapaDeMemoria()
 {
-    /* printf("Voce deve implementar essa função para a Parte 2!");*/
+    
+    
     return 0;
 }
